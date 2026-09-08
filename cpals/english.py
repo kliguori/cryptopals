@@ -1,4 +1,6 @@
-CHAR_PROB = {
+import math
+
+_FREQ = {
     "\n": 0.003014,
     " ": 0.180826,
     "!": 0.000201,
@@ -63,5 +65,22 @@ CHAR_PROB = {
 }
 
 
-def score(s):
-    pass
+def _build_log_table():
+    p = [1e-9] * 256
+    for b in range(0x20, 0x7F):
+        p[b] = 1e-6
+    p[0x09], p[0x0D] = 1e-4, 1e-5
+    for ch, f in _FREQ.items():
+        p[ord(ch)] = f
+        if ch.isalpha():
+            p[ord(ch.upper())] = f * 0.03
+    return [math.log(x) for x in p]
+
+
+_LOG = _build_log_table()
+
+
+def english_score(data: bytes) -> float:
+    if not data:
+        return float("-inf")
+    return sum(_LOG[b] for b in data) / len(data)
