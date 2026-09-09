@@ -1,23 +1,32 @@
-import string
-from cpals.convert import from_hex
+from cpals.convert import from_hex, to_hex
 from cpals.english import english_score
+from cpals.xor import xor
+
+current_score = -100_000
+current_plaintext = b""
+current_key = ""
+current_line = 0
 
 with open("data/c04.txt") as f:
-    out = {}
     for lineno, line in enumerate(f, start=1):
         line = line.strip()
         cyphertext_bytes = from_hex(line)
-        n_bytes = len(cyphertext_bytes)
-        for byte in range(256):
-            key = [byte] * n_bytes
-            plaintext_bytes = bytes(
-                key[i] ^ cyphertext_bytes[i] for i in range(n_bytes)
-            )
-            plaintext = plaintext_bytes.decode("ascii")
+        for i in range(256):
+            key = i.to_bytes(1)
+            plaintext_bytes = xor(cyphertext_bytes, key)
             plaintext_score = english_score(plaintext_bytes)
-            out[lineno] = [plaintext, plaintext_score]
+            if plaintext_score > current_score:
+                current_score = plaintext_score
+                current_plaintext = plaintext_bytes
+                current_key = key
+                current_line = lineno
 
-        results = dict(sorted(out.items(), key=lambda kv: kv[1][-1], reverse=True))
-        for i in range(len(results)):
-            v = list(results.items())
-            print(v[i][1][1], "::", v[i][0], "::", repr(v[i][1][0]))
+print(
+    current_line,
+    "::",
+    current_score,
+    "::",
+    to_hex(current_key),
+    "::",
+    current_plaintext.decode("utf-8"),
+)

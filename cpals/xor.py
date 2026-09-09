@@ -15,3 +15,7 @@ def fixed_xor(s1, s2):
 
 def xor(data: bytes, key: bytes) -> bytes:
     return bytes(map(operator.xor, data, cycle(key)))
+
+
+def repeating_key_xor(data: str, key: str) -> str:
+    return to_hex(xor(data.encode(), key.encode()))
