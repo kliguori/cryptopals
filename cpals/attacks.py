@@ -1,4 +1,6 @@
-from cpals.bits import hamming, chunking
+from cpals.xor import xor
+from cpals.english import english_score
+from cpals.bits import hamming, chunking, transposed_chunking
 
 
 def get_key_sizes(data: bytes, num_chunks: int = 2) -> dict[int, float]:
@@ -14,12 +16,36 @@ def get_key_sizes(data: bytes, num_chunks: int = 2) -> dict[int, float]:
     return dict(sorted(key_size_dict.items(), key=lambda kv: kv[1]))
 
 
-def crack_repeated_key_xor(
-    data: bytes, num_chunks: int = 2, num_sizes: int = 4
-) -> bytes:
-    keysizes = list(get_key_sizes(data, num_chunks))[:num_sizes]
+def find_key(data: bytes) -> bytes:
+    current_score = -100_000
+    current_key = b""
+    for i in range(256):
+        key = i.to_bytes(1)
+        plaintext_bytes = xor(data, key)
+        plaintext_score = english_score(plaintext_bytes)
+        if plaintext_score > current_score:
+            current_key = key
+            current_score = plaintext_score
+    return current_key
 
+
+def crack_repeated_key_xor(data: bytes, num_chunks: int = 2) -> bytes:
+    keysizes = list(get_key_sizes(data, num_chunks))[:4]
+    keys = {}
     for keysize in keysizes:
-        pass
+        transposed_chunks = transposed_chunking(data, keysize)
+        key = []
+        for chunk in transposed_chunks:
+            key.append(find_key(chunk))
+        keys[keysize] = b"".join(key)
 
-    return b"00"
+    current_score = -100_000
+    current_message = b""
+    for keysize, key in keys.items():
+        plaintext_bytes = xor(data, key)
+        plaintext_score = english_score(plaintext_bytes)
+        if plaintext_score > current_score:
+            current_message = plaintext_bytes
+            current_score = plaintext_score
+
+    return current_message

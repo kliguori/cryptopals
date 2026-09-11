@@ -22,5 +22,5 @@ def chunking(data: bytes, size: int, num_chunks: int | None = None) -> list[byte
     return [data[size * i : size * (i + 1)] for i in range(num_chunks)]
 
 
-def transpose(data: list[bytes]) -> list[bytes]:
-    return [[c[i] for i in range(0, len(c), 
+def transposed_chunking(data: bytes, size: int) -> list[bytes]:
+    return [data[i::size] for i in range(size)]
