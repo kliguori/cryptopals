@@ -14,6 +14,7 @@
         packages = with pkgs; [
           (python3.withPackages (
             ps: with ps; [
+              cryptography
               pycryptodome
               gmpy2
               sympy
@@ -32,6 +33,18 @@
           unixtools.xxd
           sage
           z3
+          gcc
+          clang-tools
+          gnumake
+          bear
+          gdb
+          valgrind
+          pkg-config
+        ];
+
+        buildInputs = with pkgs; [
+          openssl
+          gmp
         ];
 
         shellHook = ''
